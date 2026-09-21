@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Warehouse Enterprise Clicker</title>
+    <link rel="icon" type="image/x-icon" href="https://cdn.phototourl.com/free/2026-09-17-b5b81125-58f2-4700-a807-757c279bbe46.png">
+    <style>
+        
+        .placeholdertext {
+            color: #1b1f26;
+        }
+        :root {
+            --bg: #101317;
+            --panel: #1b1f26;
+            --border: #2b313b;
+            --text: #e8e6e1;
+            --muted: #97a0ab;
+            --accent: #f2b134;
+            --accent-dark: #c58f23;
+            --success: #3ecf8e;
+            --teal: #34c1c9;
+            --danger: #e2574c;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            background: var(--bg);
+            font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        button, select, input { font: inherit; }
+        button { cursor: pointer; }
+        button:focus-visible, select:focus-visible, input:focus-visible {
+            outline: 3px solid var(--teal);
+            outline-offset: 2px;
+        }
+        .topbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            padding: 20px 24px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+        }
+        h1 { margin: 0; font-size: 1.3rem; letter-spacing: .03em; text-transform: uppercase; }
+        .topbar-sub, .muted { color: var(--muted); }
+        .topbar-sub { margin: 0; font-size: .78rem; letter-spacing: .05em; text-transform: uppercase; }
+        .dashboard { max-width: 1000px; margin: auto; padding: 32px 20px 60px; }
+        .panel {
+            padding: 20px 22px 22px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-top: 3px solid var(--border);
+            border-radius: 8px;
+        }
+        .stat-grid, .shop-grid, .settings-grid, .achievement-grid {
+            display: grid;
+            gap: 18px;
+        }
+        .stat-grid { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); margin-bottom: 40px; }
+        .shop-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-bottom: 34px; }
+        .settings-grid { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+        .achievement-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+        .panel-production { border-top-color: var(--accent); }
+        .panel-earnings { border-top-color: var(--accent); }
+        .panel-label, .section-title { color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+        .panel-label { margin: 0 0 6px; font-size: .78rem; }
+        .stat-number { margin: 0 0 16px; font: 700 2.4rem "Courier New", monospace; }
+        .stat-action { position: relative; }
+        .rate-note { margin: 10px 0 0; color: var(--muted); font-size: .78rem; }
+        .btn {
+            width: 100%; padding: 12px; border: 0; border-radius: 6px;
+            color: #10131a; font-weight: 800; transition: transform .08s, background .12s;
+        }
+        .btn:active { transform: scale(.96); }
+        .btn-primary { background: var(--accent); }
+        .btn-primary:hover { background: var(--accent-dark); }
+        .btn-money { background: var(--accent); }
+        .btn-money:hover:not(:disabled) { background: var(--accent-dark); }
+        .btn-upgrade { background: var(--accent); }
+        .btn-upgrade:hover:not(:disabled) { background: var(--accent-dark); }
+        .btn:disabled { background: #262b33; color: #5c6570; cursor: not-allowed; }
+        .section-title { margin: 0 0 18px; padding-bottom: 10px; border-bottom: 1px solid var(--border); font-size: .95rem; }
+        .upgrade-card { min-height: 190px; border-top-color: var(--accent); }
+        .major-upgrade { border-top-color: var(--accent); }
+        .late-upgrade { border-top-color: var(--accent); }
+        .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+        h3 { margin: 0; font-size: 1rem; }
+        .tier-tag { color: var(--muted); font-size: .8rem; white-space: nowrap; }
+        .card-desc { min-height: 40px; margin: 0 0 14px; color: var(--muted); font-size: .88rem; }
+        .owned-line { margin: 0 0 14px; font: .85rem "Courier New", monospace; text-transform: uppercase; }
+        .status-dot { display: inline-block; width: 7px; height: 7px; margin-right: 4px; border-radius: 50%; background: #5c6570; }
+        .status-dot.active { background: var(--success); }
+        .float-number { position: absolute; left: 50%; top: -4px; pointer-events: none; animation: float-up .9s ease-out forwards; font: 700 1rem "Courier New", monospace; }
+        @keyframes float-up { to { opacity: 0; transform: translate(-50%, -46px); } }
+        .settings { margin-bottom: 34px; }
+        .setting { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: .85rem; }
+        select, input[type="text"] { padding: 9px; color: var(--text); background: #262b33; border: 1px solid var(--border); border-radius: 5px; }
+        .dev-menu { border-top-color: var(--danger); margin-bottom: 34px; }
+        .dev-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+        .dev-menu .btn { margin-top: 10px; }
+        .dev-link { display: block; text-align: center; text-decoration: none; line-height: 1.45; }
+        .achievements { margin-bottom: 34px; }
+        .achievement { padding: 14px; border: 1px solid var(--border); border-radius: 6px; background: #171b21; }
+        .achievement.unlocked { border-color: var(--success); }
+        .achievement h3 { margin-bottom: 4px; }
+        .achievement p { margin: 0; color: var(--muted); font-size: .84rem; }
+        .achievement strong { display: block; margin-top: 8px; color: var(--success); font-size: .78rem; text-transform: uppercase; }
+        .reset-link { display: block; margin: 10px auto 0; padding: 8px 4px; color: var(--muted); background: none; border: 0; text-decoration: underline; }
+        .reset-link:hover { color: var(--danger); }
+        .compact .panel { padding: 14px 16px 16px; }
+        .compact .shop-grid, .compact .stat-grid, .compact .achievement-grid { gap: 10px; }
+        @media (max-width: 480px) { .stat-number { font-size: 2rem; } }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+        .site-footer { max-width: 1000px; margin: 0 auto; padding: 24px 20px 40px; text-align: center; }
+        .site-footer p { margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+      <!-- THIS IS THE TOP BAR AREA -->
+        <h1>Warehouse Enterprise Clicker</h1>
+        <h1 class="placeholdertext">YOU FOUND W EASTER EGG!!!!</h1>
+        <h1 id="game-title"><br></h1>
+        <p class="topbar-sub"><br>---Warehouse Dispatch management Console---
+        <!--this is the end of the top bar area-->
+    </header>
+
+    <main class="dashboard">
+      <!--MAIN VARIABLE DASHBOARD-->
+        <section class="stat-grid">
+          <!--shipment counter-->
+            <div class="panel panel-production">
+                <p class="panel-label">Shipments</p>
+                <p class="stat-number" id="shipments" aria-live="polite">0</p>
+                <div class="stat-action"><button id="ship-button" class="btn btn-primary" type="button">Ship Product</button></div>
+            </div>
+
+            <!--money counter-->
+            <div class="panel panel-earnings">
+                <p class="panel-label">Balance</p>
+                <p class="stat-number">$<span id="money">0</span></p>
+                <div class="stat-action"><button id="claim-button" class="btn btn-money" type="button">Claim Earnings</button></div>
+                <p class="rate-note">Rate: $<span id="rate">1.00</span> per shipment.</p>
+            </div>
+        </section>
+
+        <section class="settings panel">
+          <!--SETTINGS UI AREA-->
+            <h2 class="section-title">Console settings</h2>
+            <div class="settings-grid">
+                <label class="setting">Shipment Representing Color
+                    <select id="accent-choice"><option value="amber">Sunstone</option><option value="blue">Cobalt</option><option value="purple"> Violet
+                    </option><option value="green">Cyber</option></select>
+                </label>
+                <label class="setting">Interface Style
+                    <select id="density-choice"><option value="normal">Readability Management</option><option value="compact">Space Management</option></select>
+                </label>
+                <label class="setting" for="name-choice">Company Name
+                    <input id="name-choice" type="text" value=" " maxlength="40" autocomplete="organization">
+                </label>
+            </div>
+        </section>
+
+
+<!-- THIS IS THE CHEAT MENU. IF YOU ARE A USER: TRY TO FIND THE CHEAT MENU CODE-->
+        <section id="developer-menu" class="panel dev-menu" hidden>
+            <h2 class="section-title">Developer Menu</h2>
+            <p class="muted">Secret testing tools enabled.</p>
+            <div class="dev-grid">
+                <button id="dev-money" class="btn btn-money" type="button">Add $1,000,000</button>
+                <button id="dev-shipments" class="btn btn-primary" type="button">Add 1,000,000 Shipments</button>
+                <button id="dev-rate" class="btn btn-upgrade" type="button">Increase Rate by $10</button>
+                <button id="dev-power" class="btn btn-primary" type="button">Add 1,000 Click Power</button>
+                <button id="dev-max-upgrades" class="btn btn-upgrade" type="button">Buy Affordable Upgrades</button>
+                <button id="dev-unlock-achievements" class="btn btn-money" type="button">Unlock Achievements</button>
+                <button id="dev-max-all-upgrades" class="btn btn-upgrade" type="button">Max Every Upgrade</button>
+                <button id="dev-billion" class="btn btn-money" type="button">Add $1,000,000,000</button>
+                <button id="dev-zero-money" class="btn" type="button">Zero Out Balance</button>
+                <button id="dev-zero-shipments" class="btn" type="button">Zero Out Shipments</button>
+                <button id="dev-export-save" class="btn btn-primary" type="button">Export Save to Console</button>
+                <a id="dev-download-code" class="btn btn-upgrade dev-link" href="download.html" hidden>Download Game Source Code</a>
+                <button id="dev-reset" class="btn" type="button">Reset Game State</button>
+            </div>
+        </section>
+
+        <section>
+          <!-- UPGRADE AREA -->
+            <h2 class="section-title">Operations Upgrades</h2>
+            <div id="upgrades" class="shop-grid"></div>
+        </section>
+
+        <section class="achievements">
+          <!-- ACHEIVMENT AREA -->
+            <h2 class="section-title">Achievements <span class="muted" id="achievement-count"></span></h2>
+            <div id="achievements" class="achievement-grid"></div>
+        </section>
+        <button id="reset-button" class="reset-link" type="button">Reset progress</button>
+    </main>
+
+    <footer class="site-footer">
+        <p>HUUUUGE thanks to Netlify; this website wouldn't be possible if it weren't for them, because I'm broke and I built this game by hand with assistance from free Anthropic AI Models... my sincerest thanks to Netlify and Anthropic; I owe so much to you two companies.</p>
+    </footer>
+
+    <script>
+        /* ---------- Game data ---------- */
+        const DEFAULT_STATE = {
+            shipments: 0, money: 0, rate: 1, clickPower: 1,
+            upgrades: {}, upgradeCosts: {}, achievements: {},
+            settings: { accent: 'amber', density: 'normal', company: 'default company name' }
+        };
+
+        // Each upgrade is data, so adding another upgrade does not require new handler code.
+        const UPGRADES = [
+            { id: 'packing', name: 'Faster Packing', group: 'money', cost: 10, repeatable: true, effect: '2× shipments per click', description: 'Doubles shipments earned per manual dispatch.', apply: s => s.clickPower *= 2, next: c => Math.floor(c * 2.5) },
+            { id: 'bulk', name: 'Bulk Dispatch', group: 'money', cost: 75, repeatable: true, effect: '+10 per click', description: 'Adds ten shipments to every manual dispatch.', apply: s => s.clickPower += 10, next: c => Math.floor(c * 2) },
+            { id: 'auto', name: 'Auto-Shipper', group: 'money', cost: 25, repeatable: true, effect: '+1 per second', description: 'Ships one box automatically every second.', apply: s => s.auto = (s.auto || 0) + 1, next: c => Math.floor(c * 1.8) },
+            { id: 'night', name: 'Night Shift', group: 'money', cost: 200, repeatable: true, effect: '+10 per second', description: 'Keeps the warehouse moving after hours.', apply: s => s.night = (s.night || 0) + 1, next: c => Math.floor(c * 2.1) },
+            { id: 'truck', name: 'Cargo Truck', group: 'money', cost: 100, repeatable: true, effect: '+5 per second', description: 'Ships five boxes every second.', apply: s => s.trucks = (s.trucks || 0) + 1, next: c => Math.floor(c * 2.2) },
+            { id: 'contract', name: 'Better Contracts', group: 'money', cost: 50, repeatable: true, effect: '+$0.25 per shipment', description: 'Negotiates a better rate on every claim.', apply: s => s.rate += .25, next: c => Math.floor(c * 2.3) },
+            { id: 'premium', name: 'Premium Freight', group: 'money', cost: 300, repeatable: true, effect: '+$1 per shipment', description: 'Raises the value of every shipment claimed.', apply: s => s.rate += 1, next: c => Math.floor(c * 2.5) },
+            { id: 'express', name: 'Express Network', group: 'shipments', cost: 100, repeatable: false, effect: '+$0.50 per shipment', description: 'A one-time network investment that increases shipment value.', apply: s => s.rate += .5 },
+            { id: 'hub', name: 'Regional Hub', group: 'shipments', cost: 500, repeatable: false, effect: '+$2 per shipment', description: 'Builds a distribution hub for a major rate increase.', apply: s => s.rate += 2 },
+            { id: 'global', name: 'Global Logistics', group: 'shipments', cost: 2500, repeatable: false, effect: '+$5 per shipment', description: 'Unlocks premium value across the global network.', apply: s => s.rate += 5 },
+            { id: 'sales', name: 'Sales Manager', group: 'money', cost: 10000000, repeatable: false, effect: 'Auto-claims every 30 sec', description: 'Automatically converts all waiting shipments into earnings every 30 seconds.', apply: s => s.salesManager = true },
+            { id: 'ai', name: 'AI Fulfillment', group: 'money', cost: 5000, repeatable: true, effect: '+25 per second', description: 'Predictive routing dramatically increases automated output.', apply: s => s.ai = (s.ai || 0) + 1, next: c => Math.floor(c * 2.4), late: true },
+            { id: 'quantum', name: 'Quantum Warehouse', group: 'money', cost: 25000, repeatable: true, effect: '+100 per click', description: 'A breakthrough in warehouse capacity multiplies every dispatch.', apply: s => s.clickPower += 100, next: c => Math.floor(c * 3), late: true },
+            { id: 'franchise', name: 'Global Franchise', group: 'money', cost: 100000, repeatable: true, effect: '+$10 per shipment', description: 'Every franchise location contributes to your contract value.', apply: s => s.rate += 10, next: c => Math.floor(c * 3), late: true },
+            { id: 'forklift', name: 'Forklift Fleet', group: 'money', cost: 40, repeatable: true, effect: '+3 per click', description: 'A row of forklifts speeds up every manual dispatch.', apply: s => s.clickPower += 3, next: c => Math.floor(c * 1.9) },
+            { id: 'drone', name: 'Drone Squadron', group: 'money', cost: 750, repeatable: true, effect: '+15 per second', description: 'A fleet of delivery drones ships boxes around the clock.', apply: s => s.drones = (s.drones || 0) + 1, next: c => Math.floor(c * 2.15) },
+            { id: 'warehouse2', name: 'Second Warehouse', group: 'shipments', cost: 1200, repeatable: false, effect: '+$3 per shipment', description: 'Opens a second facility, permanently raising shipment value.', apply: s => s.rate += 3 },
+            { id: 'insurance', name: 'Cargo Insurance', group: 'money', cost: 400, repeatable: false, effect: '+$1.50 per shipment', description: 'Insured freight commands a better price on every claim.', apply: s => s.rate += 1.5 },
+            { id: 'robotics', name: 'Robotic Sorting', group: 'money', cost: 12000, repeatable: true, effect: '+250 per click', description: 'Robotic arms sort and pack at superhuman speed.', apply: s => s.clickPower += 250, next: c => Math.floor(c * 2.6), late: true },
+            { id: 'satellite', name: 'Satellite Logistics', group: 'money', cost: 60000, repeatable: true, effect: '+50 per second', description: 'Orbital routing data keeps every truck on the fastest path.', apply: s => s.satellite = (s.satellite || 0) + 1, next: c => Math.floor(c * 2.8), late: true },
+            { id: 'megacorp', name: 'Megacorp Merger', group: 'money', cost: 500000, repeatable: false, effect: '+$25 per shipment', description: 'A merger with a logistics megacorp reshapes your rate sheet.', apply: s => s.rate += 25, late: true }
+        ];
+
+        const ACHIEVEMENTS = [
+            { id: 'first', name: 'First Dispatch', text: 'Ship your first box.', test: s => s.totalShipped >= 1 },
+            { id: 'hundred', name: 'Small Operation', text: 'Ship 100 boxes.', test: s => s.totalShipped >= 100 },
+            { id: 'thousand', name: 'Busy Warehouse', text: 'Ship 1,000 boxes.', test: s => s.totalShipped >= 1000 },
+            { id: 'million', name: 'Enterprise Scale', text: 'Ship 1,000,000 boxes.', test: s => s.totalShipped >= 1000000 },
+            { id: 'profit', name: 'First Profit', text: 'Claim your first earnings.', test: s => s.totalClaimed >= 1 },
+            { id: 'manager', name: 'Delegation', text: 'Hire the Sales Manager.', test: s => !!s.upgrades.sales },
+            // Derived from UPGRADES instead of a hardcoded ID list, so this stays correct i beleive
+            // automatically if a future shipment-funded upgrade is added or removed.
+            { id: 'network', name: 'Connected', text: 'Own every shipment-funded upgrade.', test: s => UPGRADES.filter(u => u.group === 'shipments').every(u => !!s.upgrades[u.id]) },
+            { id: 'collector', name: 'Upgrade Collector', text: 'Own 10 upgrades.', test: s => Object.values(s.upgrades).filter(Boolean).length >= 10 }
+        ];
+
+        /* ---------- State and utilities ---------- */
+        let state = structuredClone(DEFAULT_STATE);
+        const $ = id => document.getElementById(id);
+
+        // Suffixes for abbreviating large displayed numbers: index N means the
+        // value has been divided by 1000^N. Anything under a million still
+        // prints in full (e.g. "12,345"); a million and up switches to a
+        // two-decimal suffix (e.g. "1.53M", "4.54B").
+        const NUMBER_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dec', 'Und', 'Duo', 'Tre'];
+        function format(value) {
+            const whole = Math.trunc(value);
+            const magnitude = Math.abs(whole);
+            if (magnitude < 1000000) return whole.toLocaleString('en-US');
+            const tier = Math.min(Math.floor(Math.log10(magnitude) / 3), NUMBER_SUFFIXES.length - 1);
+            // Truncate (not round) to 2 decimals, e.g. 4,549,837,338 reads "4.54B"
+            // rather than rounding up to "4.55B". Truncating also means a value
+            // can never round up into the next tier, so there's no "1000.00M"
+            // rollover case to guard against.
+            const scaled = Math.trunc((whole / 1000 ** tier) * 100) / 100;
+            return scaled.toFixed(2) + NUMBER_SUFFIXES[tier];
+        }
+
+        const save = () => localStorage.setItem('warehouseEnterpriseSave', JSON.stringify(state));
+        function load() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('warehouseEnterpriseSave'));
+                if (saved) state = { ...structuredClone(DEFAULT_STATE), ...saved, settings: { ...DEFAULT_STATE.settings, ...(saved.settings || {}) } };
+            } catch { state = structuredClone(DEFAULT_STATE); }
+            migrateLegacyUpgradeCosts();
+        }
+        // Older saves stored each repeatable upgrade's next cost inside `upgrades`
+        // itself (as an "xCost" key). Besides mixing two kinds of data together,
+        // that also miscounted toward the "Own 10 upgrades" achievement, since a
+        // cost entry isn't an owned upgrade. Move any such leftover keys into
+        // `upgradeCosts` so old saves keep working correctly.
+        function migrateLegacyUpgradeCosts() {
+            Object.keys(state.upgrades).forEach(key => {
+                if (!key.endsWith('Cost')) return;
+                const id = key.slice(0, -'Cost'.length);
+                if (!(id in state.upgradeCosts)) state.upgradeCosts[id] = state.upgrades[key];
+                delete state.upgrades[key];
+            });
+        }
+        function upgradeCount(id) { return state.upgrades[id] || 0; }
+        function upgradeCost(upgrade) { return upgrade.repeatable ? (state.upgradeCosts[upgrade.id] || upgrade.cost) : upgrade.cost; }
+
+        /* ---------- Rendering ---------- */
+        function renderUpgrades() {
+            $('upgrades').innerHTML = UPGRADES.map(upgrade => {
+                const owned = upgradeCount(upgrade.id);
+                const cost = upgradeCost(upgrade);
+                const canBuy = upgrade.group === 'money' ? state.money >= cost : state.shipments >= cost;
+                const disabled = upgrade.repeatable ? !canBuy : owned > 0 || !canBuy;
+                const costText = upgrade.group === 'money' ? `$${format(cost)}` : `${format(cost)} shipments`;
+                return `<article class="panel upgrade-card ${upgrade.group === 'shipments' ? 'major-upgrade' : ''} ${upgrade.late ? 'late-upgrade' : ''}">
+                    <div class="card-head"><h3>${upgrade.name}</h3><span class="tier-tag">${upgrade.effect}</span></div>
+                    <p class="card-desc">${upgrade.description}</p>
+                    <p class="owned-line">${upgrade.repeatable ? `Owned ${format(owned)}` : (owned ? 'Owned' : 'One-time upgrade')}</p>
+                    <button class="btn btn-upgrade" data-upgrade="${upgrade.id}" ${disabled ? 'disabled' : ''}>${owned && !upgrade.repeatable ? 'Purchased' : `Buy for ${costText}`}</button>
+                </article>`;
+            }).join('');
+            document.querySelectorAll('[data-upgrade]').forEach(button => button.addEventListener('click', () => buyUpgrade(button.dataset.upgrade)));
+        }
+        function renderAchievements() {
+            const unlocked = ACHIEVEMENTS.filter(a => state.achievements[a.id]).length;
+            $('achievement-count').textContent = `(${unlocked}/${ACHIEVEMENTS.length})`;
+            $('achievements').innerHTML = ACHIEVEMENTS.map(a => `<article class="achievement ${state.achievements[a.id] ? 'unlocked' : ''}"><h3>${a.name}</h3><p>${a.text}</p><strong>${state.achievements[a.id] ? 'Unlocked' : 'Locked'}</strong></article>`).join('');
+        }
+        function applySettings() {
+            const colours = { amber: ['#f2b134', '#c58f23'], blue: ['#54a8ff', '#347ac0'], purple: ['#b56cff', '#8149b8'], green: ['#3ecf8e', '#2ea672'] };
+            const colour = colours[state.settings.accent] || colours.amber;
+            // An empty name is valid; use a visual fallback without changing saved input.
+            const companyName = state.settings.company;
+            const displayName = companyName || 'Unnamed Company';
+
+            document.documentElement.style.setProperty('--accent', colour[0]);
+            document.documentElement.style.setProperty('--accent-dark', colour[1]);
+            document.body.classList.toggle('compact', state.settings.density === 'compact');
+            $('name-choice').value = companyName;
+            $('accent-choice').value = state.settings.accent;
+            $('density-choice').value = state.settings.density;
+            $('game-title').textContent = 'company name: ' + displayName;
+            document.title = ' Warehouse Enterprise Clicker:' + displayName;
+            const developerMenuOpen = companyName === '198387-5';
+            $('developer-menu').hidden = !developerMenuOpen;
+            // The download button follows the menu so it is never reachable while the menu is closed.
+            $('dev-download-code').hidden = !developerMenuOpen;
+        }
+        function render() {
+            $('shipments').textContent = format(state.shipments);
+            $('money').textContent = format(state.money);
+            $('rate').textContent = state.rate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            $('claim-button').disabled = state.shipments <= 0;
+            renderUpgrades(); renderAchievements(); applySettings();
+        }
+
+        /* ---------- Game actions ---------- */
+        function floatText(wrapper, text, colour) {
+            const element = document.createElement('span');
+            element.className = 'float-number'; element.textContent = text; element.style.color = colour;
+            wrapper.appendChild(element); element.addEventListener('animationend', () => element.remove());
+        }
+        function ship(amount = state.clickPower) {
+            state.shipments += amount; state.totalShipped = (state.totalShipped || 0) + amount;
+            floatText($('ship-button').parentElement, '+' + format(amount), 'var(--accent)');
+            checkAchievements(); save(); render();
+        }
+        function claim() {
+            if (state.shipments <= 0) return;
+            const earned = state.shipments * state.rate;
+            state.money += earned; state.shipments = 0; state.totalClaimed = (state.totalClaimed || 0) + earned;
+            checkAchievements(); save(); render();
+        }
+        function buyUpgrade(id) {
+            const upgrade = UPGRADES.find(item => item.id === id);
+            if (!upgrade) return;
+            const owned = upgradeCount(id), cost = upgradeCost(upgrade);
+            const hasFunds = upgrade.group === 'money' ? state.money >= cost : state.shipments >= cost;
+            if ((!upgrade.repeatable && owned) || !hasFunds) return;
+            if (upgrade.group === 'money') state.money -= cost; else state.shipments -= cost;
+            upgrade.apply(state); state.upgrades[id] = owned + 1;
+            if (upgrade.repeatable) state.upgradeCosts[id] = upgrade.next(cost);
+            checkAchievements(); save(); render();
+        }
+        function checkAchievements() {
+            ACHIEVEMENTS.forEach(a => {
+                if (!state.achievements[a.id] && a.test(state)) state.achievements[a.id] = true;
+            });
+        }
+
+        /* ---------- Events and timed systems ---------- */
+        $('ship-button').addEventListener('click', () => ship());
+        $('claim-button').addEventListener('click', claim);
+        $('accent-choice').addEventListener('change', event => {
+            state.settings.accent = event.target.value;
+            save(); applySettings();
+        });
+        $('density-choice').addEventListener('change', event => {
+            state.settings.density = event.target.value;
+            save(); applySettings();
+        });
+        $('name-choice').addEventListener('input', event => {
+            // Keep the exact text, including an intentionally empty company name.
+            state.settings.company = event.target.value;
+            save(); applySettings();
+        });
+
+        // Developer tools are intentionally available only for the secret company name.
+        function useDeveloperTool(action) {
+            if (state.settings.company !== '198387-5') return;
+            action(); checkAchievements(); save(); render();
+        }
+        $('dev-money').addEventListener('click', () => useDeveloperTool(() => state.money += 1000000));
+        $('dev-shipments').addEventListener('click', () => useDeveloperTool(() => {
+            state.shipments += 1000000;
+            state.totalShipped = (state.totalShipped || 0) + 1000000;
+        }));
+        $('dev-rate').addEventListener('click', () => useDeveloperTool(() => state.rate += 10));
+        $('dev-power').addEventListener('click', () => useDeveloperTool(() => state.clickPower += 1000));
+        $('dev-max-upgrades').addEventListener('click', () => useDeveloperTool(() => {
+            UPGRADES.forEach(upgrade => {
+                const cost = upgradeCost(upgrade);
+                const hasFunds = upgrade.group === 'money' ? state.money >= cost : state.shipments >= cost;
+                if (hasFunds && (upgrade.repeatable || !upgradeCount(upgrade.id))) buyUpgrade(upgrade.id);
+            });
+        }));
+        $('dev-unlock-achievements').addEventListener('click', () => useDeveloperTool(() => {
+            ACHIEVEMENTS.forEach(achievement => state.achievements[achievement.id] = true);
+        }));
+        $('dev-max-all-upgrades').addEventListener('click', () => useDeveloperTool(() => {
+            const FREE_STACKS = 50;
+            UPGRADES.forEach(upgrade => {
+                if (upgrade.repeatable) {
+                    let cost = upgradeCost(upgrade);
+                    for (let i = 0; i < FREE_STACKS; i++) { upgrade.apply(state); cost = upgrade.next(cost); }
+                    state.upgrades[upgrade.id] = upgradeCount(upgrade.id) + FREE_STACKS;
+                    state.upgradeCosts[upgrade.id] = cost;
+                } else if (!upgradeCount(upgrade.id)) {
+                    upgrade.apply(state); state.upgrades[upgrade.id] = 1;
+                }
+            });
+        }));
+        $('dev-billion').addEventListener('click', () => useDeveloperTool(() => state.money += 1000000000));
+        $('dev-zero-money').addEventListener('click', () => useDeveloperTool(() => state.money = 0));
+        $('dev-zero-shipments').addEventListener('click', () => useDeveloperTool(() => state.shipments = 0));
+        $('dev-export-save').addEventListener('click', () => useDeveloperTool(() => {
+            console.log('Warehouse Enterprise Clicker save state:', JSON.stringify(state));
+        }));
+        $('dev-reset').addEventListener('click', () => useDeveloperTool(() => {
+            state = structuredClone(DEFAULT_STATE);
+        }));
+
+        $('reset-button').addEventListener('click', () => {
+            if (confirm('Reset all progress? This cannot be undone.')) {
+                localStorage.removeItem('warehouseEnterpriseSave'); state = structuredClone(DEFAULT_STATE); render();
+            }
+        });
+
+        // Automated production runs once per second. The manager uses its own 30-second timer.
+        setInterval(() => {
+            const perSecond = (state.auto || 0) + (state.night || 0) * 10 + (state.trucks || 0) * 5 + (state.ai || 0) * 25 + (state.drones || 0) * 15 + (state.satellite || 0) * 50;
+            if (perSecond) { state.shipments += perSecond; state.totalShipped = (state.totalShipped || 0) + perSecond; checkAchievements(); save(); render(); }
+        }, 1000);
+        setInterval(() => { if (state.salesManager && state.shipments > 0) claim(); }, 30000);
+
+        load(); state.totalShipped = state.totalShipped || 0; state.totalClaimed = state.totalClaimed || 0;
+        checkAchievements(); render();
+
+
+        //code CoNa=(198387-5)
+    </script>
+</body>
+</html>
+
+
+<!-- FROM THE DEVELOPER: Hello, if you are a user, thank you for looking at my hard work, i really appreiciate it. and since you were probably looking for it, the cheat code is on line #456 inbetween the parentheses. THANK YOU!! -->

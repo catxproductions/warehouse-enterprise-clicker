@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Source Code Download — Warehouse Enterprise Clicker</title>
+    <meta name="robots" content="noindex">
+    <style>
+        :root {
+            --bg: #101317;
+            --panel: #1b1f26;
+            --border: #2b313b;
+            --text: #e8e6e1;
+            --muted: #97a0ab;
+            --accent: #f2b134;
+            --accent-dark: #c58f23;
+            --success: #3ecf8e;
+            --teal: #34c1c9;
+            --danger: #e2574c;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            background: var(--bg);
+            font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        button, select, input { font: inherit; }
+        button { cursor: pointer; }
+        button:focus-visible, a:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+        .topbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            padding: 20px 24px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+        }
+        h1 { margin: 0; font-size: 1.3rem; letter-spacing: .03em; text-transform: uppercase; }
+        .topbar-sub, .muted { color: var(--muted); }
+        .topbar-sub { margin: 0; font-size: .78rem; letter-spacing: .05em; text-transform: uppercase; }
+        .back-link { color: var(--teal); font-size: .85rem; }
+        .dashboard { max-width: 1000px; margin: auto; padding: 32px 20px 60px; }
+        .panel {
+            padding: 20px 22px 22px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-top: 3px solid var(--accent);
+            border-radius: 8px;
+            margin-bottom: 26px;
+        }
+        .section-title {
+            margin: 0 0 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            color: var(--muted);
+            font-size: .95rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+        .file-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin: 0 0 22px;
+            padding: 0;
+            list-style: none;
+        }
+        .file-meta div { padding: 12px 14px; background: #171b21; border: 1px solid var(--border); border-radius: 6px; }
+        .file-meta dt { margin: 0 0 4px; color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
+        .file-meta dd { margin: 0; font: 700 1.1rem "Courier New", monospace; }
+        .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: 0;
+            border-radius: 6px;
+            color: #10131a;
+            font-weight: 800;
+            text-align: center;
+            text-decoration: none;
+            transition: transform .08s, background .12s;
+        }
+        .btn:active { transform: scale(.96); }
+        .btn-primary { background: var(--accent); }
+        .btn-primary:hover { background: var(--accent-dark); }
+        .btn-upgrade { background: var(--teal); }
+        .btn-upgrade:hover:not(:disabled) { background: #279aa0; }
+        .btn:disabled { background: #262b33; color: #5c6570; cursor: not-allowed; }
+        .status { min-height: 1.4em; margin: 16px 0 0; font-size: .86rem; color: var(--muted); }
+        .status.success { color: var(--success); }
+        .status.error { color: var(--danger); }
+        .source-panel { border-top-color: var(--teal); }
+        pre {
+            max-height: 460px;
+            margin: 0;
+            padding: 16px;
+            overflow: auto;
+            background: #0c0f13;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font: 12.5px/1.6 "Courier New", monospace;
+            tab-size: 4;
+        }
+        code { color: #d7dbe0; }
+        .note { margin: 0 0 18px; color: var(--muted); font-size: .88rem; }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+        .site-footer { max-width: 1000px; margin: 0 auto; padding: 24px 20px 40px; text-align: center; }
+        .site-footer p { margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <h1>Source Code Download</h1>
+        <p class="topbar-sub">Developer Tools</p>
+        <a class="back-link" href="index.html">&larr; Back to the console</a>
+    </header>
+
+    <main class="dashboard">
+        <section class="panel">
+            <h2 class="section-title">Game File</h2>
+            <p class="note">
+                The whole game — markup, styles and logic — lives in a single static file.
+                Download it, open it in any browser, and it runs with no build step.
+            </p>
+            <dl class="file-meta">
+                <div><dt>File</dt><dd>index.html</dd></div>
+                <div><dt>Size</dt><dd id="meta-size">…</dd></div>
+                <div><dt>Lines</dt><dd id="meta-lines">…</dd></div>
+                <div><dt>Last modified</dt><dd id="meta-modified">…</dd></div>
+            </dl>
+            <div class="actions">
+                <a id="download-button" class="btn btn-primary" href="index.html" download="warehouse-enterprise-clicker.html">Download index.html</a>
+                <button id="copy-button" class="btn btn-upgrade" type="button">Copy source to clipboard</button>
+            </div>
+            <p class="status" id="status" role="status" aria-live="polite">Loading source…</p>
+        </section>
+
+        <section class="panel source-panel">
+            <h2 class="section-title">Source Preview</h2>
+            <pre><code id="source-preview">Loading…</code></pre>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>HUUUUGE thanks to Netlify; this website wouldn't be possible if it weren't for them, because I'm broke and I built this game by hand with assistance from free Anthropic AI Models... my sincerest thanks to Netlify and Anthropic; I owe so much to you two companies.</p>
+    </footer>
+
+    <script>
+        const SOURCE_URL = 'index.html';
+        const DOWNLOAD_NAME = 'warehouse-enterprise-clicker.html';
+        const $ = id => document.getElementById(id);
+        let sourceText = '';
+
+        function setStatus(message, tone = '') {
+            const status = $('status');
+            status.textContent = message;
+            status.className = 'status' + (tone ? ' ' + tone : '');
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        async function loadSource() {
+            try {
+                const response = await fetch(SOURCE_URL, { cache: 'no-store' });
+                if (!response.ok) throw new Error('Request failed with status ' + response.status);
+                sourceText = await response.text();
+
+                const modified = response.headers.get('last-modified');
+                $('meta-size').textContent = formatBytes(new TextEncoder().encode(sourceText).length);
+                $('meta-lines').textContent = sourceText.split('\n').length.toLocaleString('en-US');
+                $('meta-modified').textContent = modified ? new Date(modified).toLocaleDateString() : 'Unknown';
+                // textContent escapes the markup for us, so the preview cannot execute.
+                $('source-preview').textContent = sourceText;
+
+                // Serve the download from memory so the browser never navigates to the file.
+                const url = URL.createObjectURL(new Blob([sourceText], { type: 'text/html' }));
+                const link = $('download-button');
+                link.href = url;
+                link.download = DOWNLOAD_NAME;
+                setStatus('Source ready to download.', 'success');
+            } catch (error) {
+                $('source-preview').textContent = 'Could not load the source file.';
+                $('copy-button').disabled = true;
+                // The plain link still points at the real file, so downloading keeps working.
+                setStatus('Preview unavailable (' + error.message + '). The download link still works.', 'error');
+            }
+        }
+
+        $('copy-button').addEventListener('click', async () => {
+            if (!sourceText) return;
+            try {
+                await navigator.clipboard.writeText(sourceText);
+                setStatus('Source copied to the clipboard.', 'success');
+            } catch {
+                setStatus('Clipboard access was blocked. Select the preview text to copy it manually.', 'error');
+            }
+        });
+
+        loadSource();
+    </script>
+</body>
+</html>
