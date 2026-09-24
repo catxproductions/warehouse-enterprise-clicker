@@ -168,7 +168,7 @@
         </section>
 
 
-<!-- THIS IS THE CHEAT MENU. IF YOU ARE A USER: TRY TO FIND THE CHEAT MENU CODE-->
+<!-- THIS IS THE CHEAT MENU. IF YOU ARE A USER: LOOK AWAY BRO-->
         <section id="developer-menu" class="panel dev-menu" hidden>
             <h2 class="section-title">Developer Menu</h2>
             <p class="muted">Secret testing tools enabled.</p>
@@ -250,7 +250,8 @@
             // Derived from UPGRADES instead of a hardcoded ID list, so this stays correct i beleive
             // automatically if a future shipment-funded upgrade is added or removed.
             { id: 'network', name: 'Connected', text: 'Own every shipment-funded upgrade.', test: s => UPGRADES.filter(u => u.group === 'shipments').every(u => !!s.upgrades[u.id]) },
-            { id: 'collector', name: 'Upgrade Collector', text: 'Own 10 upgrades.', test: s => Object.values(s.upgrades).filter(Boolean).length >= 10 }
+            { id: 'collector', name: 'Upgrade Collector', text: 'Own 10 upgrades.', test: s => Object.values(s.upgrades).filter(Boolean).length >= 10 },
+            { id: 'megacorp', name: 'MEGACORPORATION', text: 'REACH ONE NONILLION NET WORTH.', test: s => s.totalClaimed >= 1000000000000000000000000000000 },
         ];
 
         /* ---------- State and utilities ---------- */
