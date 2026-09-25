@@ -208,7 +208,7 @@
     </main>
 
     <footer class="site-footer">
-        <p>HUUUUGE thanks to Netlify; this website wouldn't be possible if it weren't for them, because I'm broke and I built this game by hand with assistance from free Anthropic AI Models... my sincerest thanks to all of the creators of the API, the internet, and the open-source communities that made this possible.</p>
+        <p>HUUUUGE thanks to Netlify; this website wouldn't be possible if it weren't for them, because I'm broke and I built this game by hand with assistance from free Anthropic AI Models... my sincere thanks to all the open-source communities and to anyone who shares project ideas with me.</p>
     </footer>
 
     <script>
@@ -219,29 +219,36 @@
             settings: { accent: 'amber', density: 'normal', company: 'default company name' }
         };
 
+        const ACCENT_THEMES = {
+            amber: ['#f2b134', '#c58f23'],
+            blue: ['#54a8ff', '#347ac0'],
+            purple: ['#b56cff', '#8149b8'],
+            green: ['#3ecf8e', '#2ea672']
+        };
+
         // Each upgrade is data, so adding another upgrade does not require new handler code.
         const UPGRADES = [
-            { id: 'packing', name: 'Faster Packing', group: 'money', cost: 10, repeatable: true, effect: '2× shipments per click', description: 'Doubles shipments earned per manual dispatch.', apply: s => s.clickPower = (s.clickPower || 1) * 2, next: c => c * 2 },
-            { id: 'bulk', name: 'Bulk Dispatch', group: 'money', cost: 75, repeatable: true, effect: '+10 per click', description: 'Adds ten shipments to every manual dispatch.', apply: s => s.clickPower = (s.clickPower || 1) + 10, next: c => Math.round(c * 1.8) },
-            { id: 'auto', name: 'Auto-Shipper', group: 'money', cost: 25, repeatable: true, effect: '+1 per second', description: 'Ships one box automatically every second.', apply: s => s.auto = (s.auto || 0) + 1, next: c => Math.round(c * 1.9) },
-            { id: 'night', name: 'Night Shift', group: 'money', cost: 200, repeatable: true, effect: '+10 per second', description: 'Keeps the warehouse moving after hours.', apply: s => s.night = (s.night || 0) + 1, next: c => Math.round(c * 1.75) },
-            { id: 'truck', name: 'Cargo Truck', group: 'money', cost: 100, repeatable: true, effect: '+5 per second', description: 'Ships five boxes every second.', apply: s => s.trucks = (s.trucks || 0) + 1, next: c => Math.round(c * 1.8) },
-            { id: 'contract', name: 'Better Contracts', group: 'money', cost: 50, repeatable: true, effect: '+$0.25 per shipment', description: 'Negotiates a better rate on every claim.', apply: s => s.rate = (s.rate || 1) + 0.25, next: c => Math.round(c * 1.85) },
-            { id: 'premium', name: 'Premium Freight', group: 'money', cost: 300, repeatable: true, effect: '+$1 per shipment', description: 'Raises the value of every shipment claimed.', apply: s => s.rate = (s.rate || 1) + 1, next: c => Math.round(c * 1.8) },
-            { id: 'express', name: 'Express Network', group: 'shipments', cost: 100, repeatable: false, effect: '+$0.50 per shipment', description: 'A one-time network investment that increases shipment value.', apply: s => s.rate = (s.rate || 1) + 0.5 },
-            { id: 'hub', name: 'Regional Hub', group: 'shipments', cost: 500, repeatable: false, effect: '+$2 per shipment', description: 'Builds a distribution hub for a major rate increase.', apply: s => s.rate = (s.rate || 1) + 2 },
-            { id: 'global', name: 'Global Logistics', group: 'shipments', cost: 2500, repeatable: false, effect: '+$5 per shipment', description: 'Unlocks premium value across the global network.', apply: s => s.rate = (s.rate || 1) + 5 },
-            { id: 'sales', name: 'Sales Manager', group: 'money', cost: 10000000, repeatable: false, effect: 'Auto-claims every 30 sec', description: 'Automatically converts all waiting shipments into cash.', apply: s => s.salesManager = true },
-            { id: 'ai', name: 'AI Fulfillment', group: 'money', cost: 5000, repeatable: true, effect: '+25 per second', description: 'Predictive routing dramatically increases automated output.', apply: s => s.ai = (s.ai || 0) + 1, next: c => Math.round(c * 1.9) },
-            { id: 'quantum', name: 'Quantum Warehouse', group: 'money', cost: 25000, repeatable: true, effect: '+100 per click', description: 'A breakthrough in warehouse capacity multiplies every dispatch.', apply: s => s.clickPower = (s.clickPower || 1) + 100, next: c => Math.round(c * 2.2) },
-            { id: 'franchise', name: 'Global Franchise', group: 'money', cost: 100000, repeatable: true, effect: '+$10 per shipment', description: 'Every franchise location contributes to your contracted rate.', apply: s => s.rate = (s.rate || 1) + 10, next: c => Math.round(c * 2.1) },
-            { id: 'forklift', name: 'Forklift Fleet', group: 'money', cost: 40, repeatable: true, effect: '+3 per click', description: 'A row of forklifts speeds up every manual dispatch.', apply: s => s.clickPower = (s.clickPower || 1) + 3, next: c => Math.round(c * 1.8) },
-            { id: 'drone', name: 'Drone Squadron', group: 'money', cost: 750, repeatable: true, effect: '+15 per second', description: 'A fleet of delivery drones ships boxes around the clock.', apply: s => s.drones = (s.drones || 0) + 1, next: c => Math.round(c * 1.85) },
-            { id: 'warehouse2', name: 'Second Warehouse', group: 'shipments', cost: 1200, repeatable: false, effect: '+$3 per shipment', description: 'Opens a second facility, permanently raising shipment value.', apply: s => s.rate = (s.rate || 1) + 3 },
-            { id: 'insurance', name: 'Cargo Insurance', group: 'money', cost: 400, repeatable: false, effect: '+$1.50 per shipment', description: 'Insured freight commands a better price on every claim.', apply: s => s.rate = (s.rate || 1) + 1.5 },
-            { id: 'robotics', name: 'Robotic Sorting', group: 'money', cost: 12000, repeatable: true, effect: '+250 per click', description: 'Robotic arms sort and pack at superhuman speed.', apply: s => s.clickPower = (s.clickPower || 1) + 250, next: c => Math.round(c * 2.0) },
-            { id: 'satellite', name: 'Satellite Logistics', group: 'money', cost: 60000, repeatable: true, effect: '+50 per second', description: 'Orbital routing data keeps every truck on the fastest path.', apply: s => s.satellite = (s.satellite || 0) + 1, next: c => Math.round(c * 2.0) },
-            { id: 'megacorp', name: 'Megacorp Merger', group: 'money', cost: 500000, repeatable: false, effect: '+$25 per shipment', description: 'A merger with a logistics megacorp reshapes your rate curve.', apply: s => s.rate = (s.rate || 1) + 25 },
+            { id: 'packing', name: 'Faster Packing', group: 'money', cost: 10, repeatable: true, effect: '2× shipments per click', description: 'Doubles shipments earned per manual dispatch.', apply: s => { s.clickPower = (s.clickPower || 1) * 2; }, next: c => c * 2 },
+            { id: 'bulk', name: 'Bulk Dispatch', group: 'money', cost: 75, repeatable: true, effect: '+10 per click', description: 'Adds ten shipments to every manual dispatch.', apply: s => { s.clickPower = (s.clickPower || 1) + 10; }, next: c => Math.round(c * 1.5) },
+            { id: 'auto', name: 'Auto-Shipper', group: 'money', cost: 25, repeatable: true, effect: '+1 per second', description: 'Ships one box automatically every second.', apply: s => { s.auto = (s.auto || 0) + 1; }, next: c => Math.round(c * 1.8) },
+            { id: 'night', name: 'Night Shift', group: 'money', cost: 200, repeatable: true, effect: '+10 per second', description: 'Keeps the warehouse moving after hours.', apply: s => { s.night = (s.night || 0) + 10; }, next: c => Math.round(c * 1.75) },
+            { id: 'truck', name: 'Cargo Truck', group: 'money', cost: 100, repeatable: true, effect: '+5 per second', description: 'Ships five boxes every second.', apply: s => { s.trucks = (s.trucks || 0) + 5; }, next: c => Math.round(c * 1.8) },
+            { id: 'contract', name: 'Better Contracts', group: 'money', cost: 50, repeatable: true, effect: '+$0.25 per shipment', description: 'Negotiates a better rate on every claim.', apply: s => { s.rate = (s.rate || 1) + 0.25; }, next: c => Math.round(c * 1.9) },
+            { id: 'premium', name: 'Premium Freight', group: 'money', cost: 300, repeatable: true, effect: '+$1 per shipment', description: 'Raises the value of every shipment claimed.', apply: s => { s.rate = (s.rate || 1) + 1; }, next: c => Math.round(c * 1.85) },
+            { id: 'express', name: 'Express Network', group: 'shipments', cost: 100, repeatable: false, effect: '+$0.50 per shipment', description: 'A one-time network investment that increases shipments value.', apply: s => { s.rate = (s.rate || 1) + 0.5; }, next: c => c },
+            { id: 'hub', name: 'Regional Hub', group: 'shipments', cost: 500, repeatable: false, effect: '+$2 per shipment', description: 'Builds a distribution hub for a major rate increase.', apply: s => { s.rate = (s.rate || 1) + 2; }, next: c => c },
+            { id: 'global', name: 'Global Logistics', group: 'shipments', cost: 2500, repeatable: false, effect: '+$5 per shipment', description: 'Unlocks premium value across the global network.', apply: s => { s.rate = (s.rate || 1) + 5; }, next: c => c },
+            { id: 'sales', name: 'Sales Manager', group: 'money', cost: 10000000, repeatable: false, effect: 'Auto-claims every 30 sec', description: 'Automatically converts all waiting shipments into cash.', apply: s => { s.salesManager = true; }, next: c => c },
+            { id: 'ai', name: 'AI Fulfillment', group: 'money', cost: 5000, repeatable: true, effect: '+25 per second', description: 'Predictive routing dramatically increases automated output.', apply: s => { s.ai = (s.ai || 0) + 25; }, next: c => Math.round(c * 1.8) },
+            { id: 'quantum', name: 'Quantum Warehouse', group: 'money', cost: 25000, repeatable: true, effect: '+100 per click', description: 'A breakthrough in warehouse capacity multiplies every dispatch.', apply: s => { s.clickPower = (s.clickPower || 1) + 100; }, next: c => Math.round(c * 2.1) },
+            { id: 'franchise', name: 'Global Franchise', group: 'money', cost: 100000, repeatable: true, effect: '+$10 per shipment', description: 'Every franchise location contributes to your contract value.', apply: s => { s.rate = (s.rate || 1) + 10; }, next: c => Math.round(c * 1.9) },
+            { id: 'forklift', name: 'Forklift Fleet', group: 'money', cost: 40, repeatable: true, effect: '+3 per click', description: 'A row of forklifts speeds up every manual dispatch.', apply: s => { s.clickPower = (s.clickPower || 1) + 3; }, next: c => Math.round(c * 1.7) },
+            { id: 'drone', name: 'Drone Squadron', group: 'money', cost: 750, repeatable: true, effect: '+15 per second', description: 'A fleet of delivery drones ships boxes around the clock.', apply: s => { s.drones = (s.drones || 0) + 15; }, next: c => Math.round(c * 1.8) },
+            { id: 'warehouse2', name: 'Second Warehouse', group: 'shipments', cost: 1200, repeatable: false, effect: '+$3 per shipment', description: 'Opens a second facility, permanently raising shipment value.', apply: s => { s.rate = (s.rate || 1) + 3; }, next: c => c },
+            { id: 'insurance', name: 'Cargo Insurance', group: 'money', cost: 400, repeatable: false, effect: '+$1.50 per shipment', description: 'Insured freight commands a better price on every claim.', apply: s => { s.rate = (s.rate || 1) + 1.5; }, next: c => c },
+            { id: 'robotics', name: 'Robotic Sorting', group: 'money', cost: 12000, repeatable: true, effect: '+250 per click', description: 'Robotic arms sort and pack at superhuman speed.', apply: s => { s.clickPower = (s.clickPower || 1) + 250; }, next: c => Math.round(c * 2.0) },
+            { id: 'satellite', name: 'Satellite Logistics', group: 'money', cost: 60000, repeatable: true, effect: '+50 per second', description: 'Orbital routing data keeps every truck on the fastest route.', apply: s => { s.satellite = (s.satellite || 0) + 50; }, next: c => Math.round(c * 1.8) },
+            { id: 'megacorp', name: 'Megacorp Merger', group: 'money', cost: 500000, repeatable: false, effect: '+$25 per shipment', description: 'A merger with a logistics megacorp reshapes your rate structure.', apply: s => { s.rate = (s.rate || 1) + 25; }, next: c => c }
         ];
 
         const ACHIEVEMENTS = [
@@ -317,16 +324,16 @@
             }).join('');
         }
         function applySettings() {
-            const colours = { amber: ['#f2b134', '#c58f23'], blue: ['#54a8ff', '#347ac0'], purple: ['#b56cff', '#8149b8'], green: ['#3ecf8e', '#2ea672'] };
-            const colour = colours[state.settings.accent] || colours.amber;
+            const chosenAccent = String(state.settings.accent || 'amber').trim().toLowerCase();
+            const theme = ACCENT_THEMES[chosenAccent] || ACCENT_THEMES.amber;
             const companyName = state.settings.company;
             const displayName = companyName || 'Unnamed Company';
 
-            document.documentElement.style.setProperty('--accent', colour[0]);
-            document.documentElement.style.setProperty('--accent-dark', colour[1]);
+            document.documentElement.style.setProperty('--accent', theme[0]);
+            document.documentElement.style.setProperty('--accent-dark', theme[1]);
             document.body.classList.toggle('compact', state.settings.density === 'compact');
             $('name-choice').value = companyName;
-            $('accent-choice').value = state.settings.accent;
+            $('accent-choice').value = chosenAccent;
             $('density-choice').value = state.settings.density;
             $('game-title').textContent = 'company name: ' + displayName;
             document.title = ' Warehouse Enterprise Clicker:' + displayName;
