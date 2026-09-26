@@ -20,6 +20,7 @@
             --EVIL: #AC1D1C;
             --lapis: #123456;
         }
+
         * { box-sizing: border-box; }
         body {
             margin: 0;
@@ -34,9 +35,7 @@
             outline: 3px solid var(--teal);
             outline-offset: 2px;
         }
-        .easter-egg{
-            color: var(--panel)
-        }
+        .easter-egg { color: var(--panel); }
         .topbar {
             display: flex;
             flex-wrap: wrap;
@@ -68,6 +67,7 @@
         .panel-label, .section-title { color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
         .panel-label { margin: 0 0 6px; font-size: .78rem; }
         .stat-number { margin: 0 0 16px; font: 700 2.4rem "Courier New", monospace; }
+        .stat-action { position: relative; }
         .rate-note { margin: 10px 0 0; color: var(--muted); font-size: .78rem; }
         .btn {
             width: 100%; padding: 12px; border: 0; border-radius: 6px;
@@ -88,7 +88,15 @@
         .tier-tag { color: var(--muted); font-size: .8rem; white-space: nowrap; }
         .card-desc { min-height: 40px; margin: 0 0 14px; color: var(--muted); font-size: .88rem; }
         .owned-line { margin: 0 0 14px; font: .85rem "Courier New", monospace; text-transform: uppercase; }
-        .float-number { position: absolute; left: 50%; top: -4px; pointer-events: none; animation: float-up .9s ease-out forwards; font: 700 1rem "Courier New", monospace; }
+        .float-number {
+            position: absolute;
+            left: 50%;
+            top: -4px;
+            pointer-events: none;
+            animation: float-up .9s ease-out forwards;
+            font: 700 1rem "Courier New", monospace;
+            white-space: nowrap;
+        }
         @keyframes float-up { to { opacity: 0; transform: translate(-50%, -46px); } }
         .settings { margin-bottom: 34px; }
         .setting { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: .85rem; }
@@ -116,8 +124,8 @@
     <header class="topbar">
         <h1>Warehouse Enterprise Clicker</h1>
         <h1 class="easter-egg">YOU FOUND W EASTER EGG!!!!</h1>
-        <h1 id="game-title"><br></h1>
-        <p class="topbar-sub"><br>---Warehouse Dispatch management Console---</p>
+        <h1 id="game-title">default company name</h1>
+        <p class="topbar-sub">---Warehouse Dispatch management Console---</p>
     </header>
 
     <main class="dashboard">
@@ -153,7 +161,7 @@
                         <option value="compact">Space Management</option>
                     </select>
                 </label>
-                <label class="setting" for="name-choice">Company Name>
+                <label class="setting" for="name-choice">Company Name
                     <input id="name-choice" type="text" value="default company name" maxlength="40" autocomplete="organization">
                 </label>
             </div>
@@ -194,20 +202,21 @@
     </main>
 
     <footer class="site-footer">
-        <p>HUUUUGE thanks to Netlify; this website wouldn't be possible if it weren't for them, because I'm broke and I built this game by hand with assistance from free Anthropic AI Models... my sincerest thanks.</p>
+        <p>HUUUUGE thanks to Netlify; this website wouldn't be possible if it weren't for them.</p>
     </footer>
 
     <script>
+        const STORAGE_KEY = 'warehouseEnterpriseSave';
         const DEFAULT_STATE = {
             shipments: 0,
             money: 0,
             rate: 1,
             clickPower: 1,
+            totalShipped: 0,
+            totalClaimed: 0,
             upgrades: {},
             upgradeCosts: {},
             achievements: {},
-            totalShipped: 0,
-            totalClaimed: 0,
             settings: { accent: 'amber', density: 'normal', company: 'default company name' },
             auto: 0,
             night: 0,
@@ -215,38 +224,35 @@
             ai: 0,
             drones: 0,
             satellite: 0,
-            salesManager: false,
+            salesManager: false
         };
 
         const ACCENT_THEMES = {
             amber: ['#f2b134', '#c58f23'],
             blue: ['#54a8ff', '#347ac0'],
             purple: ['#b56cff', '#8149b8'],
-            green: ['#3ecf8e', '#2ea672'],
+            green: ['#3ecf8e', '#2ea672']
         };
 
         const UPGRADES = [
-            { id: 'packing', name: 'Faster Packing', group: 'money', cost: 10, repeatable: true, effect: '2× per click', description: 'Doubles shipments gained by every manual dispatch.', apply: s => { s.clickPower = (s.clickPower || 1) * 2; }, next: cost => Math.ceil(cost * 1.55) },
-            { id: 'bulk', name: 'Bulk Dispatch', group: 'money', cost: 75, repeatable: true, effect: '+10 per click', description: 'Adds ten shipments to each manual dispatch.', apply: s => { s.clickPower = (s.clickPower || 1) + 10; }, next: cost => Math.ceil(cost * 1.6) },
-            { id: 'auto', name: 'Auto-Shipper', group: 'money', cost: 25, repeatable: true, effect: '+1 per second', description: 'Ships one box automatically every second.', apply: s => { s.auto = (s.auto || 0) + 1; }, next: cost => Math.ceil(cost * 1.7) },
-            { id: 'night', name: 'Night Shift', group: 'money', cost: 200, repeatable: true, effect: '+10 per second', description: 'Keeps the warehouse moving after hours.', apply: s => { s.night = (s.night || 0) + 10; }, next: cost => Math.ceil(cost * 1.7) },
-            { id: 'truck', name: 'Cargo Truck', group: 'money', cost: 100, repeatable: true, effect: '+5 per second', description: 'Ships five boxes every second.', apply: s => { s.trucks = (s.trucks || 0) + 5; }, next: cost => Math.ceil(cost * 1.7) },
-            { id: 'contract', name: 'Better Contracts', group: 'money', cost: 50, repeatable: true, effect: '+$0.25 per shipment', description: 'Negotiates a better rate for each claim.', apply: s => { s.rate = Number((s.rate + 0.25).toFixed(2)); }, next: cost => Math.ceil(cost * 1.6) },
-            { id: 'premium', name: 'Premium Freight', group: 'money', cost: 300, repeatable: true, effect: '+$1 per shipment', description: 'Raises the value of every shipment you claim.', apply: s => { s.rate = Number((s.rate + 1).toFixed(2)); }, next: cost => Math.ceil(cost * 1.7) },
-            { id: 'express', name: 'Express Network', group: 'shipments', cost: 100, repeatable: false, effect: '+$0.50 per shipment', description: 'A one-time network investment that increases shipment value.', apply: s => { s.rate = Number((s.rate + 0.5).toFixed(2)); } },
-            { id: 'hub', name: 'Regional Hub', group: 'shipments', cost: 500, repeatable: false, effect: '+$2 per shipment', description: 'Builds a distribution hub for a major rate increase.', apply: s => { s.rate = Number((s.rate + 2).toFixed(2)); } },
-            { id: 'global', name: 'Global Logistics', group: 'shipments', cost: 2500, repeatable: false, effect: '+$5 per shipment', description: 'Unlocks premium value across the global network.', apply: s => { s.rate = Number((s.rate + 5).toFixed(2)); } },
-            { id: 'sales', name: 'Sales Manager', group: 'money', cost: 10000000, repeatable: false, effect: 'Auto-claims every 30 sec', description: 'Automatically converts all waiting shipments into money.', apply: s => { s.salesManager = true; } },
-            { id: 'ai', name: 'AI Fulfillment', group: 'money', cost: 5000, repeatable: true, effect: '+25 per second', description: 'Predictive routing dramatically increases automated output.', apply: s => { s.ai = (s.ai || 0) + 25; }, next: cost => Math.ceil(cost * 1.7) },
-            { id: 'quantum', name: 'Quantum Warehouse', group: 'money', cost: 25000, repeatable: true, effect: '+100 per click', description: 'Breakthrough warehouse capacity multiplies every dispatch.', apply: s => { s.clickPower = (s.clickPower || 1) + 100; }, next: cost => Math.ceil(cost * 1.8) },
-            { id: 'franchise', name: 'Global Franchise', group: 'money', cost: 100000, repeatable: true, effect: '+$10 per shipment', description: 'Every franchise location contributes to your contracts.', apply: s => { s.rate = Number((s.rate + 10).toFixed(2)); }, next: cost => Math.ceil(cost * 1.8) },
-            { id: 'forklift', name: 'Forklift Fleet', group: 'money', cost: 40, repeatable: true, effect: '+3 per click', description: 'A row of forklifts speeds up every manual dispatch.', apply: s => { s.clickPower = (s.clickPower || 1) + 3; }, next: cost => Math.ceil(cost * 1.7) },
-            { id: 'drone', name: 'Drone Squadron', group: 'money', cost: 750, repeatable: true, effect: '+15 per second', description: 'A fleet of delivery drones ships boxes around the clock.', apply: s => { s.drones = (s.drones || 0) + 15; }, next: cost => Math.ceil(cost * 1.7) },
-            { id: 'warehouse2', name: 'Second Warehouse', group: 'shipments', cost: 1200, repeatable: false, effect: '+$3 per shipment', description: 'Opens a second facility, permanently raising shipment value.', apply: s => { s.rate = Number((s.rate + 3).toFixed(2)); } },
-            { id: 'insurance', name: 'Cargo Insurance', group: 'money', cost: 400, repeatable: false, effect: '+$1.50 per shipment', description: 'Insured freight commands a better price on every claim.', apply: s => { s.rate = Number((s.rate + 1.5).toFixed(2)); } },
-            { id: 'robotics', name: 'Robotic Sorting', group: 'money', cost: 12000, repeatable: true, effect: '+250 per click', description: 'Robotic arms sort and pack at superhuman speed.', apply: s => { s.clickPower = (s.clickPower || 1) + 250; }, next: cost => Math.ceil(cost * 1.8) },
-            { id: 'satellite', name: 'Satellite Logistics', group: 'money', cost: 60000, repeatable: true, effect: '+50 per second', description: 'Orbital routing data keeps every truck on the fastest route.', apply: s => { s.satellite = (s.satellite || 0) + 50; }, next: cost => Math.ceil(cost * 1.8) },
-            { id: 'megacorp', name: 'Megacorp Merger', group: 'money', cost: 500000, repeatable: false, effect: '+$25 per shipment', description: 'A merger with a logistics megacorp reshapes your rate structure.', apply: s => { s.rate = Number((s.rate + 25).toFixed(2)); } },
+            { id: 'packing', name: 'Faster Packing', group: 'money', cost: 10, repeatable: true, effect: '2× shipments per click', description: 'Doubles shipments earned per manual dispatch.', apply: s => { s.clickPower = (s.clickPower || 1) * 2; } },
+            { id: 'bulk', name: 'Bulk Dispatch', group: 'money', cost: 75, repeatable: true, effect: '+10 per click', description: 'Adds ten shipments to every manual dispatch.', apply: s => { s.clickPower += 10; } },
+            { id: 'auto', name: 'Auto-Shipper', group: 'money', cost: 25, repeatable: true, effect: '+1 per second', description: 'Ships one box automatically every second.', apply: s => { s.auto = (s.auto || 0) + 1; } },
+            { id: 'truck', name: 'Cargo Truck', group: 'money', cost: 100, repeatable: true, effect: '+5 per second', description: 'Ships five boxes every second.', apply: s => { s.trucks = (s.trucks || 0) + 5; } },
+            { id: 'night', name: 'Night Shift', group: 'money', cost: 200, repeatable: true, effect: '+10 per second', description: 'Keeps the warehouse moving after hours.', apply: s => { s.night = (s.night || 0) + 10; } },
+            { id: 'contract', name: 'Better Contracts', group: 'money', cost: 50, repeatable: true, effect: '+$0.25 per shipment', description: 'Negotiates a better rate on every claim.', apply: s => { s.rate += 0.25; } },
+            { id: 'premium', name: 'Premium Freight', group: 'money', cost: 300, repeatable: true, effect: '+$1 per shipment', description: 'Raises the value of every shipment claimed.', apply: s => { s.rate += 1; } },
+            { id: 'express', name: 'Express Network', group: 'shipments', cost: 100, repeatable: false, effect: '+$0.50 per shipment', description: 'A one-time network investment that increases shipment value.', apply: s => { s.rate += 0.5; } },
+            { id: 'hub', name: 'Regional Hub', group: 'shipments', cost: 500, repeatable: false, effect: '+$2 per shipment', description: 'Builds a distribution hub for a major rate increase.', apply: s => { s.rate += 2; } },
+            { id: 'global', name: 'Global Logistics', group: 'shipments', cost: 2500, repeatable: false, effect: '+$5 per shipment', description: 'Unlocks premium value across the global network.', apply: s => { s.rate += 5; } },
+            { id: 'forklift', name: 'Forklift Fleet', group: 'money', cost: 40, repeatable: true, effect: '+3 per click', description: 'A row of forklifts speeds up every manual dispatch.', apply: s => { s.clickPower += 3; } },
+            { id: 'drone', name: 'Drone Squadron', group: 'money', cost: 750, repeatable: true, effect: '+15 per second', description: 'A fleet of delivery drones ships boxes around the clock.', apply: s => { s.drones = (s.drones || 0) + 15; } },
+            { id: 'warehouse2', name: 'Second Warehouse', group: 'shipments', cost: 1200, repeatable: false, effect: '+$3 per shipment', description: 'Opens a second facility, permanently raising shipment value.', apply: s => { s.rate += 3; } },
+            { id: 'insurance', name: 'Cargo Insurance', group: 'money', cost: 400, repeatable: false, effect: '+$1.50 per shipment', description: 'Insured freight commands a better price on every claim.', apply: s => { s.rate += 1.5; } },
+            { id: 'robotics', name: 'Robotic Sorting', group: 'money', cost: 12000, repeatable: true, effect: '+250 per click', description: 'Robotic arms sort and pack at superhuman speed.', apply: s => { s.clickPower += 250; } },
+            { id: 'satellite', name: 'Satellite Logistics', group: 'money', cost: 60000, repeatable: true, effect: '+50 per second', description: 'Orbital routing data keeps every truck on the fastest route.', apply: s => { s.satellite = (s.satellite || 0) + 50; } },
+            { id: 'megacorp', name: 'Megacorp Merger', group: 'money', cost: 500000, repeatable: false, effect: '+$25 per shipment', description: 'A merger with a logistics megacorp reshapes your rate profile.', apply: s => { s.rate += 25; } },
+            { id: 'sales', name: 'Sales Manager', group: 'money', cost: 10000000, repeatable: false, effect: 'Auto-claims every 30 sec', description: 'Automatically converts all waiting shipments into cash.', apply: s => { s.salesManager = true; } }
         ];
 
         const ACHIEVEMENTS = [
@@ -255,72 +261,70 @@
             { id: 'thousand', name: 'Busy Warehouse', text: 'Ship 1,000 boxes.', test: s => s.totalShipped >= 1000 },
             { id: 'million', name: 'Enterprise Scale', text: 'Ship 1,000,000 boxes.', test: s => s.totalShipped >= 1000000 },
             { id: 'profit', name: 'First Profit', text: 'Claim your first earnings.', test: s => s.totalClaimed >= 1 },
-            { id: 'manager', name: 'Delegation', text: 'Hire the Sales Manager.', test: s => !!s.upgrades.sales },
-            { id: 'network', name: 'Connected', text: 'Own every shipment-funded upgrade.', test: s => UPGRADES.filter(u => u.group === 'shipments').every(u => !!s.upgrades[u.id]) },
-            { id: 'collector', name: 'Upgrade Collector', text: 'Own 10 upgrades.', test: s => Object.values(s.upgrades).filter(Boolean).length >= 10 },
-            { id: 'megacorp', name: 'MEGACORPORATION', text: 'REACH ONE NONILLION NET WORTH.', test: s => s.totalClaimed >= 1000000000000000000000000000000 },
+            { id: 'manager', name: 'Delegation', text: 'Hire the Sales Manager.', test: s => !!s.salesManager },
+            { id: 'collector', name: 'Upgrade Collector', text: 'Own 10 upgrades.', test: s => Object.keys(s.upgrades || {}).length >= 10 }
         ];
 
         let state = structuredClone(DEFAULT_STATE);
         const $ = id => document.getElementById(id);
 
-        const NUMBER_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dec', 'Und', 'Duo', 'Tre', 'Quat', 'Quin', 'Quantum Dollars', 'Atomic Level Money'];
-
+        const NUMBER_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dec'];
         function format(value) {
-            const whole = Math.trunc(value);
-            const magnitude = Math.abs(whole);
-            if (magnitude < 1000000) return whole.toLocaleString('en-US');
-            const tier = Math.min(Math.floor(Math.log10(magnitude) / 3), NUMBER_SUFFIXES.length - 1);
-            const scaled = Math.trunc((whole / 1000 ** tier) * 100) / 100;
-            return scaled.toFixed(2) + NUMBER_SUFFIXES[tier];
+            const whole = Math.trunc(Number(value) || 0);
+            const abs = Math.abs(whole);
+            if (abs < 1000000) return whole.toLocaleString('en-US');
+            const tier = Math.min(Math.floor(Math.log10(abs) / 3), NUMBER_SUFFIXES.length - 1);
+            const scaled = (whole / (1000 ** tier));
+            return `${scaled.toFixed(2).replace(/\.00$/, '')}${NUMBER_SUFFIXES[tier]}`;
         }
 
         function save() {
-            localStorage.setItem('warehouseEnterpriseSave', JSON.stringify(state));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         }
 
         function load() {
             try {
-                const saved = JSON.parse(localStorage.getItem('warehouseEnterpriseSave'));
+                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
                 if (saved) {
                     state = { ...structuredClone(DEFAULT_STATE), ...saved, settings: { ...DEFAULT_STATE.settings, ...(saved.settings || {}) } };
                 }
             } catch {
                 state = structuredClone(DEFAULT_STATE);
             }
-            state.achievements = { ...Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, false])), ...(state.achievements || {}) };
-            migrateLegacyUpgradeCosts();
-        }
 
-        function migrateLegacyUpgradeCosts() {
-            Object.keys(state.upgrades).forEach(key => {
-                if (!key.endsWith('Cost')) return;
-                const id = key.slice(0, -4);
-                if (!(id in state.upgradeCosts)) state.upgradeCosts[id] = state.upgrades[key];
-                delete state.upgrades[key];
-            });
+            state.achievements = { ...Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, false])), ...(state.achievements || {}) };
+            state.totalShipped = Number(state.totalShipped || 0);
+            state.totalClaimed = Number(state.totalClaimed || 0);
+            state.clickPower = Number(state.clickPower || 1);
+            state.rate = Number(state.rate || 1);
         }
 
         function upgradeCount(id) { return state.upgrades[id] || 0; }
-        function upgradeCost(upgrade) {
-            return upgrade.repeatable ? (state.upgradeCosts[upgrade.id] || upgrade.cost) : upgrade.cost;
-        }
+        function upgradeCost(upgrade) { return upgrade.repeatable ? (state.upgradeCosts[upgrade.id] || upgrade.cost) : upgrade.cost; }
 
         function renderUpgrades() {
             $('upgrades').innerHTML = UPGRADES.map(upgrade => {
                 const owned = upgradeCount(upgrade.id);
                 const cost = upgradeCost(upgrade);
                 const canBuy = upgrade.group === 'money' ? state.money >= cost : state.shipments >= cost;
-                const disabled = upgrade.repeatable ? !canBuy : owned > 0 || !canBuy;
+                const disabled = upgrade.repeatable ? !canBuy : (owned > 0 || !canBuy);
                 const costText = upgrade.group === 'money' ? `$${format(cost)}` : `${format(cost)} shipments`;
-                return `<article class="panel upgrade-card">
-                    <div class="card-head"><h3>${upgrade.name}</h3><span class="tier-tag">${upgrade.effect}</span></div>
-                    <p class="card-desc">${upgrade.description}</p>
-                    <p class="owned-line">${upgrade.repeatable ? `Owned ${format(owned)}` : (owned ? 'Owned' : 'One-time upgrade')}</p>
-                    <button class="btn btn-upgrade" data-upgrade="${upgrade.id}" ${disabled ? 'disabled' : ''}>${owned && !upgrade.repeatable ? 'Purchased' : `Buy for ${costText}`}</button>
-                </article>`;
+                return `
+                    <article class="panel upgrade-card">
+                        <div class="card-head">
+                            <h3>${upgrade.name}</h3>
+                            <span class="tier-tag">${upgrade.effect}</span>
+                        </div>
+                        <p class="card-desc">${upgrade.description}</p>
+                        <p class="owned-line">${upgrade.repeatable ? `Owned ${format(owned)}` : (owned ? 'Owned' : 'One-time upgrade')}</p>
+                        <button class="btn btn-upgrade" data-upgrade="${upgrade.id}" ${disabled ? 'disabled' : ''}>${owned && !upgrade.repeatable ? 'Purchased' : `Buy for ${costText}`}</button>
+                    </article>
+                `;
             }).join('');
-            document.querySelectorAll('[data-upgrade]').forEach(button => button.addEventListener('click', () => buyUpgrade(button.dataset.upgrade)));
+
+            document.querySelectorAll('[data-upgrade]').forEach(button => {
+                button.addEventListener('click', () => buyUpgrade(button.dataset.upgrade));
+            });
         }
 
         function renderAchievements() {
@@ -335,19 +339,22 @@
         function applySettings() {
             const chosenAccent = String(state.settings.accent || 'amber').trim().toLowerCase();
             const theme = ACCENT_THEMES[chosenAccent] || ACCENT_THEMES.amber;
-            const companyName = state.settings.company || 'Unnamed Company';
+            const companyName = String(state.settings.company || 'default company name').trim() || 'default company name';
+
             document.documentElement.style.setProperty('--accent', theme[0]);
             document.documentElement.style.setProperty('--accent-dark', theme[1]);
             document.body.classList.toggle('compact', state.settings.density === 'compact');
+
             $('name-choice').value = companyName;
             $('accent-choice').value = chosenAccent;
             $('density-choice').value = state.settings.density;
-            $('game-title').textContent = 'company name: ' + companyName;
-            document.title = 'Warehouse Enterprise Clicker: ' + companyName;
-            const developerMenuOpen = companyName === '198387-5';
-            $('developer-menu').hidden = !developerMenuOpen;
-            $('dev-download-code').hidden = !developerMenuOpen;
-            $('dev-insanity-mode').hidden = !developerMenuOpen;
+            $('game-title').textContent = companyName;
+            document.title = `Warehouse Enterprise Clicker: ${companyName}`;
+
+            const developerOpen = companyName === '198387-5';
+            $('developer-menu').hidden = !developerOpen;
+            $('dev-download-code').hidden = !developerOpen;
+            $('dev-insanity-mode').hidden = !developerOpen;
         }
 
         function render() {
@@ -361,12 +368,12 @@
         }
 
         function floatText(wrapper, text, colour) {
-            const element = document.createElement('span');
-            element.className = 'float-number';
-            element.textContent = text;
-            element.style.color = colour;
-            wrapper.appendChild(element);
-            element.addEventListener('animationend', () => element.remove());
+            const el = document.createElement('span');
+            el.className = 'float-number';
+            el.textContent = text;
+            el.style.color = colour;
+            wrapper.appendChild(el);
+            el.addEventListener('animationend', () => el.remove());
         }
 
         function ship(amount = state.clickPower) {
@@ -392,14 +399,25 @@
         function buyUpgrade(id) {
             const upgrade = UPGRADES.find(item => item.id === id);
             if (!upgrade) return;
+
             const owned = upgradeCount(id);
             const cost = upgradeCost(upgrade);
             const hasFunds = upgrade.group === 'money' ? state.money >= cost : state.shipments >= cost;
             if ((!upgrade.repeatable && owned) || !hasFunds) return;
-            if (upgrade.group === 'money') state.money -= cost; else state.shipments -= cost;
+
+            if (upgrade.group === 'money') {
+                state.money -= cost;
+            } else {
+                state.shipments -= cost;
+            }
+
             upgrade.apply(state);
             state.upgrades[id] = owned + 1;
-            if (upgrade.repeatable) state.upgradeCosts[id] = upgrade.next(cost);
+
+            if (upgrade.repeatable) {
+                state.upgradeCosts[id] = Math.round(cost * 1.75);
+            }
+
             checkAchievements();
             save();
             render();
@@ -407,8 +425,18 @@
 
         function checkAchievements() {
             ACHIEVEMENTS.forEach(a => {
-                if (!state.achievements[a.id] && a.test(state)) state.achievements[a.id] = true;
+                if (!state.achievements[a.id] && a.test(state)) {
+                    state.achievements[a.id] = true;
+                }
             });
+        }
+
+        function useDeveloperTool(action) {
+            if (state.settings.company !== '198387-5') return;
+            action();
+            checkAchievements();
+            save();
+            render();
         }
 
         $('ship-button').addEventListener('click', () => ship());
@@ -429,71 +457,55 @@
             applySettings();
         });
 
-        function useDeveloperTool(action) {
-            if (state.settings.company !== '198387-5') return;
-            action();
-            checkAchievements();
-            save();
-            render();
-        }
-
-        $('dev-money').addEventListener('click', () => useDeveloperTool(() => { state.money += 1000000; }));
-        $('dev-shipments').addEventListener('click', () => useDeveloperTool(() => {
-            state.shipments += 1000000;
-            state.totalShipped = (state.totalShipped || 0) + 1000000;
-        }));
-        $('dev-rate').addEventListener('click', () => useDeveloperTool(() => { state.rate += 10; }));
-        $('dev-power').addEventListener('click', () => useDeveloperTool(() => { state.clickPower += 1000; }));
+        $('dev-money').addEventListener('click', () => useDeveloperTool(() => state.money += 1000000));
+        $('dev-shipments').addEventListener('click', () => useDeveloperTool(() => { state.shipments += 1000000; state.totalShipped += 1000000; }));
+        $('dev-rate').addEventListener('click', () => useDeveloperTool(() => state.rate += 10));
+        $('dev-power').addEventListener('click', () => useDeveloperTool(() => state.clickPower += 1000));
         $('dev-max-upgrades').addEventListener('click', () => useDeveloperTool(() => {
             UPGRADES.forEach(upgrade => {
                 const cost = upgradeCost(upgrade);
-                const hasFunds = upgrade.group === 'money' ? state.money >= cost : state.shipments >= cost;
-                if (hasFunds && (upgrade.repeatable || !upgradeCount(upgrade.id))) buyUpgrade(upgrade.id);
+                const affordable = upgrade.group === 'money' ? state.money >= cost : state.shipments >= cost;
+                if (affordable && (upgrade.repeatable || !upgradeCount(upgrade.id))) buyUpgrade(upgrade.id);
             });
         }));
         $('dev-unlock-achievements').addEventListener('click', () => useDeveloperTool(() => {
             ACHIEVEMENTS.forEach(achievement => state.achievements[achievement.id] = true);
         }));
         $('dev-max-all-upgrades').addEventListener('click', () => useDeveloperTool(() => {
-            const FREE_STACKS = 50;
             UPGRADES.forEach(upgrade => {
                 if (upgrade.repeatable) {
-                    let cost = upgradeCost(upgrade);
-                    for (let i = 0; i < FREE_STACKS; i++) {
+                    for (let i = 0; i < 25; i++) {
+                        if (upgrade.group === 'money') state.money -= Math.min(state.money, upgradeCost(upgrade));
+                        else state.shipments -= Math.min(state.shipments, upgradeCost(upgrade));
                         upgrade.apply(state);
-                        cost = upgrade.next(cost);
+                        state.upgrades[upgrade.id] = (state.upgrades[upgrade.id] || 0) + 1;
                     }
-                    state.upgrades[upgrade.id] = upgradeCount(upgrade.id) + FREE_STACKS;
-                    state.upgradeCosts[upgrade.id] = cost;
                 } else if (!upgradeCount(upgrade.id)) {
+                    if (upgrade.group === 'money') state.money -= upgrade.cost; else state.shipments -= upgrade.cost;
                     upgrade.apply(state);
                     state.upgrades[upgrade.id] = 1;
                 }
             });
         }));
-        $('dev-billion').addEventListener('click', () => useDeveloperTool(() => { state.money += 1000000000; }));
-        $('dev-zero-money').addEventListener('click', () => useDeveloperTool(() => { state.money = 0; }));
-        $('dev-zero-shipments').addEventListener('click', () => useDeveloperTool(() => { state.shipments = 0; }));
-        $('dev-export-save').addEventListener('click', () => useDeveloperTool(() => {
-            console.log('Warehouse Enterprise Clicker save state:', JSON.stringify(state));
-        }));
-        $('dev-reset').addEventListener('click', () => useDeveloperTool(() => {
-            state = structuredClone(DEFAULT_STATE);
-        }));
+        $('dev-billion').addEventListener('click', () => useDeveloperTool(() => state.money += 1000000000));
+        $('dev-zero-money').addEventListener('click', () => useDeveloperTool(() => state.money = 0));
+        $('dev-zero-shipments').addEventListener('click', () => useDeveloperTool(() => state.shipments = 0));
+        $('dev-export-save').addEventListener('click', () => useDeveloperTool(() => console.log('Warehouse Enterprise Clicker save state:', JSON.stringify(state))));
+        $('dev-reset').addEventListener('click', () => useDeveloperTool(() => { state = structuredClone(DEFAULT_STATE); }));
 
         $('reset-button').addEventListener('click', () => {
             if (confirm('Reset all progress? This cannot be undone.')) {
-                localStorage.removeItem('warehouseEnterpriseSave');
+                localStorage.removeItem(STORAGE_KEY);
                 state = structuredClone(DEFAULT_STATE);
                 render();
             }
         });
 
         setInterval(() => {
-            const perSecond = (state.auto || 0) + (state.night || 0) * 10 + (state.trucks || 0) * 5 + (state.ai || 0) * 25 + (state.drones || 0) * 15 + (state.satellite || 0) * 50;
-            if (perSecond) {
+            const perSecond = (state.auto || 0) + (state.night || 0) + (state.trucks || 0) + (state.drones || 0) + (state.satellite || 0);
+            if (perSecond > 0) {
                 state.shipments += perSecond;
-                state.totalShipped = (state.totalShipped || 0) + perSecond;
+                state.totalShipped += perSecond;
                 checkAchievements();
                 save();
                 render();
@@ -501,17 +513,14 @@
         }, 1000);
 
         setInterval(() => {
-            if (state.salesManager && state.shipments > 0) claim();
+            if (state.salesManager && state.shipments > 0) {
+                claim();
+            }
         }, 30000);
 
         load();
-        state.totalShipped = state.totalShipped || 0;
-        state.totalClaimed = state.totalClaimed || 0;
         checkAchievements();
         render();
     </script>
 </body>
 </html>
-CoNa=198387-5
-
-<!-- FROM THE DEVELOPER: Hello, if you are a user, thank you for looking at my hard work; I really appreciate it! -->
