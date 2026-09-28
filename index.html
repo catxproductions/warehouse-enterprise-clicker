@@ -301,7 +301,9 @@
         let state = structuredClone(DEFAULT_STATE);
         const $ = id => document.getElementById(id);
 
-        const NUMBER_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dec', 'Und', 'Duo', 'Tre', 'Quat', 'Quin', 'Quantum Dollars', 'Atomic Level Money','jiggle dollars','you can stop now','insanity dollars','touch grass','are you the jiggle master??','i know its you sal','oh my...','fork dollars','jimmy dollars','joe dollars','average price of gas in 2026','rip joe dingle','you made bill gates cry','the worlds richest people are trembling in fear','bill gates tears','bill','i have your ip','your home address too','your government files say alot about you','iphones','random turkish dude says hi','yummy dollars','mr james net worth',' golden forks','ultra dollars',' bobs',' gallons of gas',' joe dingle statues'] ];
+        const NUMBER_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dec', 'Und', 'Duo', 'Tre', 'Quat', 'Quin', 'Quantum Dollars', 'Atomic Level Money','jiggle dollars','you can stop now','RESET'];
+        const RESET_THRESHOLD = 10n ** 999999n;
+
         function format(value) {
             const whole = Math.trunc(Number(value) || 0);
             const abs = Math.abs(whole);
@@ -414,7 +416,6 @@
             notification.className = 'reset-notification';
             notification.innerHTML = '<h2>DOMAIN EXPANSION<br>RESET PROGRESS</h2>';
             document.body.appendChild(notification);
-            
             setTimeout(() => notification.remove(), 3000);
         }
 
@@ -477,15 +478,16 @@
         }
 
         function checkReset() {
-            // Check if money has reached the RESET suffix tier (10^999999)
-            const resetThreshold = Math.pow(1000, NUMBER_SUFFIXES.length - 1);
-            if (state.money >= resetThreshold) {
-                showResetNotification();
-                localStorage.removeItem(STORAGE_KEY);
-                state = structuredClone(DEFAULT_STATE);
-                setTimeout(() => {
-                    render();
-                }, 3000);
+            try {
+                const moneyBigInt = BigInt(Math.trunc(state.money));
+                if (moneyBigInt >= RESET_THRESHOLD) {
+                    showResetNotification();
+                    localStorage.removeItem(STORAGE_KEY);
+                    state = structuredClone(DEFAULT_STATE);
+                    setTimeout(() => render(), 3000);
+                }
+            } catch {
+                // No-op if the number exceeds JS safe limits for Number conversion.
             }
         }
 
