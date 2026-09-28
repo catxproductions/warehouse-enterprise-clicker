@@ -268,7 +268,7 @@
         let state = structuredClone(DEFAULT_STATE);
         const $ = id => document.getElementById(id);
 
-        const NUMBER_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dec'];
+        const NUMBER_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dec', 'Und', 'Duo', 'Tre', 'Quat', 'Quin', 'Quantum Dollars', 'Atomic Level Money','jiggle dollars','you can quit now...','ok jeez salvador','billy dollars','Toothpick dollars','JAMES DOLLARS','heheheheheeehehehe','STOP','if you keep going im banning you','I SAID STOP!!!','STOP IT','I GIVE UP!!!!','I SAID I GIVE UP ALREADY','YUP YER BANNED','IM RESETTING YOUR PROGRESS','RESET'];
         function format(value) {
             const whole = Math.trunc(Number(value) || 0);
             const abs = Math.abs(whole);
