@@ -235,7 +235,7 @@
         };
 
         const UPGRADES = [
-            { id: 'packing', name: 'Faster Packing', group: 'money', cost: 10, repeatable: true, effect: '2× shipments per click', description: 'Doubles shipments earned per manual dispatch.', apply: s => { s.clickPower = (s.clickPower || 1) * 2; } },
+            { id: 'packing', name: 'Faster Packing', group: 'money', cost: 10, repeatable: true, effect: '2× shipments per click', description: 'Doubles shipments earned per manual dispatch.', apply: s => { s.clickPower *= 2; } },
             { id: 'bulk', name: 'Bulk Dispatch', group: 'money', cost: 75, repeatable: true, effect: '+10 per click', description: 'Adds ten shipments to every manual dispatch.', apply: s => { s.clickPower += 10; } },
             { id: 'auto', name: 'Auto-Shipper', group: 'money', cost: 25, repeatable: true, effect: '+1 per second', description: 'Ships one box automatically every second.', apply: s => { s.auto = (s.auto || 0) + 1; } },
             { id: 'truck', name: 'Cargo Truck', group: 'money', cost: 100, repeatable: true, effect: '+5 per second', description: 'Ships five boxes every second.', apply: s => { s.trucks = (s.trucks || 0) + 5; } },
@@ -250,9 +250,9 @@
             { id: 'warehouse2', name: 'Second Warehouse', group: 'shipments', cost: 1200, repeatable: false, effect: '+$3 per shipment', description: 'Opens a second facility, permanently raising shipment value.', apply: s => { s.rate += 3; } },
             { id: 'insurance', name: 'Cargo Insurance', group: 'money', cost: 400, repeatable: false, effect: '+$1.50 per shipment', description: 'Insured freight commands a better price on every claim.', apply: s => { s.rate += 1.5; } },
             { id: 'robotics', name: 'Robotic Sorting', group: 'money', cost: 12000, repeatable: true, effect: '+250 per click', description: 'Robotic arms sort and pack at superhuman speed.', apply: s => { s.clickPower += 250; } },
-            { id: 'satellite', name: 'Satellite Logistics', group: 'money', cost: 60000, repeatable: true, effect: '+50 per second', description: 'Orbital routing data keeps every truck on the fastest route.', apply: s => { s.satellite = (s.satellite || 0) + 50; } },
-            { id: 'megacorp', name: 'Megacorp Merger', group: 'money', cost: 500000, repeatable: false, effect: '+$25 per shipment', description: 'A merger with a logistics megacorp reshapes your rate profile.', apply: s => { s.rate += 25; } },
-            { id: 'sales', name: 'Sales Manager', group: 'money', cost: 10000000, repeatable: false, effect: 'Auto-claims every 30 sec', description: 'Automatically converts all waiting shipments into cash.', apply: s => { s.salesManager = true; } }
+            { id: 'satellite', name: 'Satellite Logistics', group: 'money', cost: 60000, repeatable: true, effect: '+50 per second', description: 'Orbital routing data keeps every truck on the fastest path.', apply: s => { s.satellite = (s.satellite || 0) + 50; } },
+            { id: 'megacorp', name: 'Megacorp Merger', group: 'money', cost: 500000, repeatable: false, effect: '+$25 per shipment', description: 'A merger with a logistics megacorp reshapes your rates.', apply: s => { s.rate += 25; } },
+            { id: 'sales', name: 'Sales Manager', group: 'money', cost: 10000000, repeatable: false, effect: 'Auto-claims every 30 sec', description: 'Automatically converts all waiting shipments into earnings.', apply: s => { s.salesManager = true; } }
         ];
 
         const ACHIEVEMENTS = [
@@ -268,7 +268,7 @@
         let state = structuredClone(DEFAULT_STATE);
         const $ = id => document.getElementById(id);
 
-        const NUMBER_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dec', 'Und', 'Duo', 'Tre', 'Quat', 'Quin', 'Quantum Dollars', 'Atomic Level Money','jiggle dollars','you can quit now...','ok jeez salvador','billy dollars','Toothpick dollars','JAMES DOLLARS','heheheheheeehehehe','STOP','if you keep going im banning you','I SAID STOP!!!','STOP IT','I GIVE UP!!!!','I SAID I GIVE UP ALREADY','YUP YER BANNED','IM RESETTING YOUR PROGRESS','RESET'];
+        const NUMBER_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dec', 'Und', 'Duo', 'Tre', 'Quat', 'Quin', 'Quantum Dollars', 'Atomic Level Money','jiggle dollars','you can stop now','RESET'];
         function format(value) {
             const whole = Math.trunc(Number(value) || 0);
             const abs = Math.abs(whole);
@@ -381,6 +381,7 @@
             state.totalShipped = (state.totalShipped || 0) + amount;
             floatText($('ship-button').parentElement, '+' + format(amount), 'var(--accent)');
             checkAchievements();
+            checkReset();
             save();
             render();
         }
@@ -392,6 +393,7 @@
             state.shipments = 0;
             state.totalClaimed = (state.totalClaimed || 0) + earned;
             checkAchievements();
+            checkReset();
             save();
             render();
         }
@@ -419,6 +421,7 @@
             }
 
             checkAchievements();
+            checkReset();
             save();
             render();
         }
@@ -431,10 +434,22 @@
             });
         }
 
+        function checkReset() {
+            // Check if money has reached the RESET suffix tier (10^66)
+            const resetThreshold = Math.pow(1000, NUMBER_SUFFIXES.length - 1);
+            if (state.money >= resetThreshold) {
+                alert('You have reached the RESET suffix! Your progress has been reset.');
+                localStorage.removeItem(STORAGE_KEY);
+                state = structuredClone(DEFAULT_STATE);
+                render();
+            }
+        }
+
         function useDeveloperTool(action) {
             if (state.settings.company !== '198387-5') return;
             action();
             checkAchievements();
+            checkReset();
             save();
             render();
         }
@@ -507,6 +522,7 @@
                 state.shipments += perSecond;
                 state.totalShipped += perSecond;
                 checkAchievements();
+                checkReset();
                 save();
                 render();
             }
